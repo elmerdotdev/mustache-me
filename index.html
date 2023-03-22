@@ -77,7 +77,6 @@
             'https://res.cloudinary.com/dp53wf7gb/image/upload/v1679438920/mustache_ccujbg.png';
 
           // Send image to google to analyze
-          // Documentation of the annotate feature: https://cloud.google.com/vision/docs/reference/rest/v1/images/annotate
           fetch(
             'https://vision.googleapis.com/v1/images:annotate?key=AIzaSyA14aZIcHKO5fj3_msyfpuhu2HzGkLCLsE',
             {
@@ -106,8 +105,9 @@
               return resp.json();
             })
             .then((json) => {
-              // Simply output the response
+              // Output the response
               document.querySelector('#mustacheWrapper').innerHTML = '';
+              document.querySelector('#codeWrapper').innerHTML = '';
               json.responses[0].faceAnnotations.forEach((annotation) => {
                 rollAngle = annotation.rollAngle;
                 annotation.landmarks.forEach((landmark) => {
@@ -144,6 +144,7 @@
                   <div>Mustache rotation: ${rollAngle} degrees</div>
                 `;
 
+                // Output log to code wrapper
                 document.querySelector('#codeWrapper').append(codeDiv);
               });
             });
