@@ -1,0 +1,150 @@
+<html>
+  <head>
+    <title>Mustache Me - Google Cloud Vision API</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      #textWrapper {
+        padding: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <video autoplay="true" id="videoElement"></video>
+    <div id="textWrapper">
+      <button id="vision_button">Give me mustache!</button>
+      <p>
+        Look straight and keep your head steady.<br />
+        <strong>Don't move</strong> while I give you a mustache.
+      </p>
+    </div>
+
+    <div id="mustacheWrapper"></div>
+    <script>
+      // Access camera
+      var video = document.querySelector('#videoElement');
+      if (navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices
+          .getUserMedia({ video: true })
+          .then(function (stream) {
+            video.srcObject = stream;
+          })
+          .catch(function (err) {
+            console.log('Something went wrong!');
+          });
+      }
+
+      // We only get to work when the vision button is clicked
+      document
+        .querySelector('#vision_button')
+        .addEventListener('click', (evt) => {
+          // extract image as base64, scale it down to reduce data transfer speed
+          var scale = 1;
+          var canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth * scale;
+          canvas.height = video.videoHeight * scale;
+          canvas
+            .getContext('2d')
+            .drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          // dataUrl contains base64 version of image
+          var dataUrl = canvas.toDataURL();
+
+          // Positions
+          var leftEyeX;
+          var rightEyeX;
+
+          var noseBottomX;
+          var noseBottomY;
+
+          var upperLipX;
+          var upperLipY;
+          var upperLipZ;
+
+          var rollAngle;
+
+          // Mustache
+          var mustache =
+            'https://res.cloudinary.com/dp53wf7gb/image/upload/v1679438920/mustache_ccujbg.png';
+
+          // Send image to google to analyze
+          // Documentation of the annotate feature: https://cloud.google.com/vision/docs/reference/rest/v1/images/annotate
+          fetch(
+            'https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDa-LcSnPk8mbHAVh4cDTL3E3Dw0Io307c',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                requests: [
+                  {
+                    features: {
+                      type: 'FACE_DETECTION',
+                    },
+                    image: {
+                      // have to extract only the image data from dataURL
+                      content: dataUrl.substring(
+                        'data:image/png;base64,'.length
+                      ),
+                    },
+                  },
+                ],
+              }),
+            }
+          )
+            .then((resp) => {
+              return resp.json();
+            })
+            .then((json) => {
+              // Simply output the response
+              console.log(json);
+              document.querySelector('#mustacheWrapper').innerHTML = '';
+              json.responses[0].faceAnnotations.forEach((annotation) => {
+                console.log(
+                  `Pan: ${annotation.panAngle}`,
+                  `Tilt: ${annotation.tiltAngle}`,
+                  `Roll: ${annotation.rollAngle}`
+                );
+                rollAngle = annotation.rollAngle;
+                annotation.landmarks.forEach((landmark) => {
+                  if (landmark.type === 'LEFT_EYE') {
+                    leftEyeX = landmark.position.x;
+                  }
+
+                  if (landmark.type === 'RIGHT_EYE') {
+                    rightEyeX = landmark.position.x;
+                  }
+
+                  if (landmark.type === 'NOSE_BOTTOM_CENTER') {
+                    noseBottomX = landmark.position.x;
+                    noseBottomY = landmark.position.y;
+                  }
+
+                  if (landmark.type === 'UPPER_LIP') {
+                    upperLipX = landmark.position.x;
+                    upperLipY = landmark.position.y;
+                    upperLipZ = landmark.position.z;
+                  }
+                });
+
+                let mustacheDiv = document.createElement('div');
+                mustacheDiv.innerHTML = `<img src="${mustache}" width="${Math.round(
+                  rightEyeX - leftEyeX
+                )}px" style="position: absolute; top: ${Math.round(
+                  noseBottomY
+                )}px; left: ${Math.round(
+                  noseBottomX - (rightEyeX - leftEyeX) / 2
+                )}px; transform: rotate(${rollAngle}deg)" />`;
+
+                document.querySelector('#mustacheWrapper').append(mustacheDiv);
+              });
+            });
+        });
+    </script>
+  </body>
+</html>
