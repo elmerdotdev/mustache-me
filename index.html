@@ -58,14 +58,8 @@
           // Positions
           var leftEyeX;
           var rightEyeX;
-
           var noseBottomX;
           var noseBottomY;
-
-          var upperLipX;
-          var upperLipY;
-          var upperLipZ;
-
           var rollAngle;
 
           // Mustache
@@ -103,14 +97,8 @@
             })
             .then((json) => {
               // Simply output the response
-              console.log(json);
               document.querySelector('#mustacheWrapper').innerHTML = '';
               json.responses[0].faceAnnotations.forEach((annotation) => {
-                console.log(
-                  `Pan: ${annotation.panAngle}`,
-                  `Tilt: ${annotation.tiltAngle}`,
-                  `Roll: ${annotation.rollAngle}`
-                );
                 rollAngle = annotation.rollAngle;
                 annotation.landmarks.forEach((landmark) => {
                   if (landmark.type === 'LEFT_EYE') {
@@ -124,12 +112,6 @@
                   if (landmark.type === 'NOSE_BOTTOM_CENTER') {
                     noseBottomX = landmark.position.x;
                     noseBottomY = landmark.position.y;
-                  }
-
-                  if (landmark.type === 'UPPER_LIP') {
-                    upperLipX = landmark.position.x;
-                    upperLipY = landmark.position.y;
-                    upperLipZ = landmark.position.z;
                   }
                 });
 
