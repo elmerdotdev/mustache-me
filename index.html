@@ -24,6 +24,7 @@
     </div>
 
     <div id="mustacheWrapper"></div>
+    <div id="codeWrapper"></div>
     <script>
       // Access camera
       var video = document.querySelector('#videoElement');
@@ -142,6 +143,16 @@
                 )}px; transform: rotate(${rollAngle}deg)" />`;
 
                 document.querySelector('#mustacheWrapper').append(mustacheDiv);
+
+                let codeDiv = document.createElement('div');
+                codeDiv.innerHTML = `
+                  <div>Mustache width: ${rightEyeX - leftEyeX}</div>
+                  <div>Mustache x-axis: ${noseBottomX - (rightEyeX - leftEyeX) / 2}</div>
+                  <div>Mustache y-axis: ${noseBottomY}</div>
+                  <div>Mustache rotation: ${rollAngle}</div>
+                `;
+
+                document.querySelector('#codeWrapper').append(codeDiv);
               });
             });
         });
